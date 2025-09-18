@@ -1,0 +1,282 @@
+// === RPG Clicker Game ===
+
+// Set gradient background: blue center → faded black edges
+document.body.style.background = "radial-gradient(circle, blue 30%, black 100%)";
+document.body.style.height = '100vh';
+document.body.style.margin = '0';
+document.body.style.overflow = 'hidden';
+
+// Create an audio element for click sound
+const clickSound = new Audio('https://example.com/click-sound.mp3'); // Replace with your click sound file URL
+
+// Add background funky music
+const bgMusic = new Audio('https://www.bensound.com/bensound-music/bensound-funkyelement.mp3'); // Funky royalty-free track
+bgMusic.loop = true;
+bgMusic.volume = 0.5; // Start at 50%
+bgMusic.play();
+
+// Create a div to display the score
+const scoreDiv = document.createElement('div');
+scoreDiv.style.position = 'fixed';
+scoreDiv.style.top = '40%';
+scoreDiv.style.left = '50%';
+scoreDiv.style.transform = 'translate(-50%, -50%)';
+scoreDiv.style.zIndex = '1000';
+scoreDiv.style.fontSize = '24px';
+scoreDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+scoreDiv.style.padding = '10px';
+scoreDiv.style.border = '1px solid #ccc';
+scoreDiv.style.textAlign = 'center';
+document.body.appendChild(scoreDiv);
+
+// Initialize score
+let score = 0;
+scoreDiv.innerText = `Score: ${score}`;
+
+// Track if special messages have been shown
+let hasShown10BMessage = false;
+let hasShown100BMessage = false;
+
+// Function to create a button with red styles
+function createRedButton(text, onClick) {
+    const button = document.createElement('button');
+    button.innerText = text;
+    button.style.margin = '10px';
+    button.style.fontSize = '24px';
+    button.style.padding = '10px';
+    button.style.display = 'block';
+    button.style.width = '180px';
+    button.style.backgroundColor = 'red';
+    button.style.color = 'white';
+    button.addEventListener('click', () => {
+        clickSound.play();
+        onClick();
+    });
+    document.body.appendChild(button);
+    return button;
+}
+
+// Function to create and animate the falling score number
+function createFallingScore() {
+    const scoreNumber = document.createElement('div');
+    scoreNumber.innerText = score;
+    scoreNumber.style.position = 'fixed';
+    scoreNumber.style.left = `${Math.random() * (window.innerWidth - 50)}px`;
+    scoreNumber.style.top = '0px';
+    scoreNumber.style.zIndex = '999';
+    scoreNumber.style.fontSize = '30px';
+    scoreNumber.style.color = 'white'; // Falling numbers are white
+    document.body.appendChild(scoreNumber);
+
+    let fallDistance = 0;
+    const fallInterval = setInterval(() => {
+        fallDistance += 5;
+        scoreNumber.style.top = `${fallDistance}px`;
+        if (fallDistance > window.innerHeight) {
+            clearInterval(fallInterval);
+            scoreNumber.remove();
+        }
+    }, 50);
+}
+
+// Buttons
+createRedButton('Click Me!', () => {
+    score += 1;
+    updateScoreDisplay();
+    createFallingScore();
+});
+
+createRedButton('Reset', () => {
+    score = 0;
+    hasShown10BMessage = false; 
+    hasShown100BMessage = false; 
+    updateScoreDisplay();
+});
+
+createRedButton('Set Score', () => {
+    const newScore = prompt("Enter the new score:");
+    if (newScore !== null && !isNaN(newScore)) {
+        score = parseInt(newScore, 10);
+        updateScoreDisplay();
+    }
+});
+
+// Auto-clicker system
+let autoClickerInterval;
+let sliderDiv;
+let speedSlider;
+
+createRedButton('Start Auto Clicker', () => {
+    if (!autoClickerInterval) {
+        if (!sliderDiv) {
+            sliderDiv = document.createElement('div');
+            sliderDiv.style.position = 'fixed';
+            sliderDiv.style.top = '50%';
+            sliderDiv.style.left = '20px';
+            sliderDiv.style.transform = 'translateY(-50%)';
+            sliderDiv.style.zIndex = '1000';
+            document.body.appendChild(sliderDiv);
+
+            speedSlider = document.createElement('input');
+            speedSlider.type = 'range';
+            speedSlider.min = '1';
+            speedSlider.max = '1000';
+            speedSlider.value = speedSlider.max; // Start at slowest
+            speedSlider.style.width = '200px';
+            sliderDiv.appendChild(speedSlider);
+
+            speedSlider.addEventListener('input', () => {
+                if (autoClickerInterval) {
+                    clearInterval(autoClickerInterval);
+                    autoClickerInterval = setInterval(() => {
+                        score += 1;
+                        updateScoreDisplay();
+                    }, parseInt(speedSlider.value, 10));
+                }
+            });
+        }
+
+        sliderDiv.style.display = "block"; // Show when auto-clicker starts
+
+        autoClickerInterval = setInterval(() => {
+            score += 1;
+            updateScoreDisplay();
+        }, parseInt(speedSlider.value, 10));
+    } else {
+        clearInterval(autoClickerInterval);
+        autoClickerInterval = null;
+        if (sliderDiv) {
+            sliderDiv.style.display = "none"; // Hide when auto-clicker stops
+        }
+    }
+});
+
+// Music toggle button (fixed in top-right, now purple)
+const musicButton = document.createElement('button');
+musicButton.innerText = "Toggle Music";
+musicButton.style.position = "fixed";
+musicButton.style.top = "10px";
+musicButton.style.right = "10px";
+musicButton.style.zIndex = "2000";
+musicButton.style.backgroundColor = "purple"; 
+musicButton.style.color = "white";
+musicButton.style.fontSize = "18px";
+musicButton.style.padding = "8px 12px";
+musicButton.style.border = "none";
+musicButton.style.borderRadius = "8px";
+musicButton.addEventListener('click', () => {
+    clickSound.play();
+    if (bgMusic.paused) {
+        bgMusic.play();
+    } else {
+        bgMusic.pause();
+    }
+});
+document.body.appendChild(musicButton);
+
+// Settings button (⚙️ icon in bottom-right)
+const settingsButton = document.createElement('button');
+settingsButton.innerText = "⚙️";
+settingsButton.style.position = "fixed";
+settingsButton.style.bottom = "10px";
+settingsButton.style.right = "10px";
+settingsButton.style.zIndex = "2000";
+settingsButton.style.backgroundColor = "black";
+settingsButton.style.color = "white";
+settingsButton.style.fontSize = "24px";
+settingsButton.style.padding = "10px 14px";
+settingsButton.style.border = "none";
+settingsButton.style.borderRadius = "50%";
+settingsButton.style.cursor = "pointer";
+document.body.appendChild(settingsButton);
+
+// Create the settings overlay (hidden at first, fade effect)
+const settingsOverlay = document.createElement('div');
+settingsOverlay.style.position = "fixed";
+settingsOverlay.style.top = "0";
+settingsOverlay.style.left = "0";
+settingsOverlay.style.width = "100%";
+settingsOverlay.style.height = "100%";
+settingsOverlay.style.backgroundColor = "white";
+settingsOverlay.style.zIndex = "3000";
+settingsOverlay.style.display = "none"; 
+settingsOverlay.style.opacity = "0"; 
+settingsOverlay.style.transition = "opacity 0.6s ease";
+settingsOverlay.style.padding = "20px";
+document.body.appendChild(settingsOverlay);
+
+// Create close (X) button inside overlay
+const closeButton = document.createElement('button');
+closeButton.innerText = "❌";
+closeButton.style.position = "absolute";
+closeButton.style.top = "10px";
+closeButton.style.right = "40px"; 
+closeButton.style.fontSize = "24px";
+closeButton.style.background = "red";
+closeButton.style.color = "white";
+closeButton.style.border = "none";
+closeButton.style.padding = "8px 12px";
+closeButton.style.borderRadius = "8px";
+closeButton.style.cursor = "pointer";
+settingsOverlay.appendChild(closeButton);
+
+// Add Music Volume control inside overlay
+const volumeLabel = document.createElement('label');
+volumeLabel.innerText = "Music Volume: ";
+volumeLabel.style.display = "block";
+volumeLabel.style.marginTop = "60px";
+volumeLabel.style.fontSize = "20px";
+settingsOverlay.appendChild(volumeLabel);
+
+const volumeSlider = document.createElement('input');
+volumeSlider.type = "range";
+volumeSlider.min = "0";
+volumeSlider.max = "100";
+volumeSlider.value = bgMusic.volume * 100; 
+volumeSlider.style.width = "300px";
+volumeSlider.style.display = "block";
+volumeSlider.style.marginTop = "10px";
+settingsOverlay.appendChild(volumeSlider);
+
+volumeSlider.addEventListener('input', () => {
+    bgMusic.volume = volumeSlider.value / 100;
+});
+
+// Open overlay with fade-in
+settingsButton.addEventListener('click', () => {
+    clickSound.play();
+    settingsOverlay.style.display = "block";
+    setTimeout(() => {
+        settingsOverlay.style.opacity = "1";
+    }, 50);
+});
+
+// Close overlay with fade-out
+closeButton.addEventListener('click', () => {
+    clickSound.play();
+    settingsOverlay.style.opacity = "0";
+    setTimeout(() => {
+        settingsOverlay.style.display = "none";
+    }, 600);
+});
+
+// Update score + achievement check
+function updateScoreDisplay() {
+    if (score >= 100000000000 && !hasShown100BMessage) {
+        hasShown100BMessage = true;
+        const originalText = scoreDiv.innerText;
+        scoreDiv.innerText = "HOW THE HELL but i still know you cheated bozo";
+        setTimeout(() => {
+            scoreDiv.innerText = `Score: ${score}`;
+        }, 10000); 
+    } else if (score >= 10000000000 && !hasShown10BMessage) {
+        hasShown10BMessage = true;
+        const originalText = scoreDiv.innerText;
+        scoreDiv.innerText = "so i think you SS or AC but if you made it by just clicking your crazy";
+        setTimeout(() => {
+            scoreDiv.innerText = `Score: ${score}`;
+        }, 10000); 
+    } else {
+        scoreDiv.innerText = `Score: ${score}`;
+    }
+}
